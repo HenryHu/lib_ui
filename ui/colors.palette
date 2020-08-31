@@ -536,20 +536,23 @@ mediaviewTransparentFg: #cccccc; // another transparent filling part
 notificationBg: windowBg; // custom notification window background
 
 // calls
-callBg: #26282cf2; // phone call popup background
+callBg: #26282cf2; // old phone call popup background
+callBgOpaque: #1b1f23; // phone call popup background
+callBgButton: #1b1f237f; // phone call window control buttons bg
 callNameFg: #ffffff; // phone call popup name text
 callFingerprintBg: #00000066; // phone call popup emoji fingerprint background
 callStatusFg: #aaabac; // phone call popup status text
-callIconFg: #ffffff; // phone call popup answer, hangup and mute mic icon
+callIconBg: #ffffff1f; // phone call mute mic and camera button background
+callIconFg: #ffffff; // phone call popup answer, hangup, mute mic and camera icon
+callIconBgActive: #ffffffe5; // phone call line busy cancel, muted mic and camera button background
+callIconFgActive: #222222; // phone call line busy cancel, muted mic and camera icon
+callIconActiveRipple: #f1f1f1; // phone call line busy cancel, muted mic and camera ripple effect
 callAnswerBg: #64c15b; // phone call popup answer button background
 callAnswerRipple: #52b149; // phone call popup answer button ripple effect
 callAnswerBgOuter: #50eb4126; // phone call popup answer button outer ripple effect
 callHangupBg: #d75a5a; // phone call popup hangup button background
 callHangupRipple: #c04646; // phone call popup hangup button ripple effect
-callCancelBg: #ffffff; // phone call popup line busy cancel button background
-callCancelFg: #777777; // phone call popup line busy cancel button icon
-callCancelRipple: #f1f1f1; // phone call popup line busy cancel button ripple effect
-callMuteRipple: #ffffff12; // phone call popup mute mic ripple effect
+callMuteRipple: #ffffff12; // phone call popup mute mic and camera ripple effect
 
 callBarBg: dialogsBgActive; // active phone call bar background
 callBarMuteRipple: dialogsRippleBgActive; // active phone call bar mute and hangup button ripple effect
@@ -593,11 +596,13 @@ walletTopLabelFg: #999999; // wallet top updated label text
 walletTopIconFg: walletTopLabelFg; // wallet top refresh and menu icons
 walletTopIconRipple: #ffffff12; // wallet top menu icon ripple effect
 
-sideBarBg: #36434c; // filters side bar background
-sideBarTextFg: #93999e; // filters side bar text
+sideBarBg: #293a4c; // filters side bar background
+sideBarBgActive: #17212b; // filters side bar active background
+sideBarBgRipple: #1e2b38; // filters side bar ripple effect
+sideBarTextFg: #8897a6; // filters side bar text
 sideBarTextFgActive: #64b9fa; // filters side bar active item text
-sideBarIconFg: #979797; // filters side bar icon
+sideBarIconFg: #8393a3; // filters side bar icon
 sideBarIconFgActive: #5eb5f7; // filters side bar active item icon
 sideBarBadgeBg: #5eb5f7; // filters side bar badge background
-sideBarBadgeFgMuted: #aaaaaa; // filters side bar unimportant badge background
+sideBarBadgeBgMuted: #8393a3; // filters side bar unimportant badge background
 sideBarBadgeFg: #ffffff; // filters side bar badge text

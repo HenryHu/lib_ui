@@ -4,7 +4,7 @@
 # For license and copyright information please follow this link:
 # https://github.com/desktop-app/legal/blob/master/LEGAL
 
-add_library(lib_ui OBJECT)
+add_library(lib_ui STATIC)
 add_library(desktop-app::lib_ui ALIAS lib_ui)
 init_target(lib_ui)
 
@@ -22,7 +22,7 @@ set(style_files
 
 generate_palette(lib_ui ui/colors.palette)
 generate_styles(lib_ui ${src_loc} "${style_files}" ui/colors.palette)
-generate_emoji(lib_ui emoji_suggestions/emoji_autocomplete.json)
+generate_emoji(lib_ui emoji.txt emoji_suggestions/emoji_autocomplete.json)
 
 set_target_properties(lib_ui PROPERTIES AUTOMOC ON AUTORCC ON)
 
@@ -84,12 +84,15 @@ PRIVATE
     ui/platform/win/ui_window_win.h
     ui/platform/win/ui_utility_win.cpp
     ui/platform/win/ui_utility_win.h
+    ui/platform/ui_platform_window.cpp
     ui/platform/ui_platform_window.h
     ui/platform/ui_platform_utility.h
     ui/style/style_core.cpp
     ui/style/style_core.h
     ui/style/style_core_color.cpp
     ui/style/style_core_color.h
+    ui/style/style_core_custom_font.cpp
+    ui/style/style_core_custom_font.h
     ui/style/style_core_direction.cpp
     ui/style/style_core_direction.h
     ui/style/style_core_font.cpp
@@ -100,6 +103,7 @@ PRIVATE
     ui/style/style_core_scale.h
     ui/style/style_core_types.cpp
     ui/style/style_core_types.h
+    ui/text/qtextitemint.cpp
     ui/text/text.cpp
     ui/text/text.h
     ui/text/text_block.cpp
@@ -135,8 +139,8 @@ PRIVATE
     ui/widgets/popup_menu.h
     ui/widgets/scroll_area.cpp
     ui/widgets/scroll_area.h
-    ui/widgets/side_bar_menu.cpp
-    ui/widgets/side_bar_menu.h
+    ui/widgets/side_bar_button.cpp
+    ui/widgets/side_bar_button.h
     ui/widgets/shadow.cpp
     ui/widgets/shadow.h
     ui/widgets/tooltip.cpp
@@ -151,6 +155,8 @@ PRIVATE
     ui/wrap/slide_wrap.h
     ui/wrap/vertical_layout.cpp
     ui/wrap/vertical_layout.h
+    ui/wrap/vertical_layout_reorder.cpp
+    ui/wrap/vertical_layout_reorder.h
     ui/wrap/wrap.h
     ui/abstract_button.cpp
     ui/abstract_button.h
