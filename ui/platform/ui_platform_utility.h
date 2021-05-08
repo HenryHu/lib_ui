@@ -6,6 +6,8 @@
 //
 #pragma once
 
+#include "ui/platform/ui_platform_window_title.h"
+
 class QPoint;
 class QPainter;
 class QPaintEvent;
@@ -16,7 +18,7 @@ namespace Platform {
 [[nodiscard]] bool IsApplicationActive();
 
 [[nodiscard]] bool TranslucentWindowsSupported(QPoint globalPosition);
-void StartTranslucentPaint(QPainter &p, gsl::span<const QRect> rects);
+void StartTranslucentPaint(QPainter &p, const QRegion &region);
 
 void InitOnTopPanel(not_null<QWidget*> panel);
 void DeInitOnTopPanel(not_null<QWidget*> panel);
@@ -26,9 +28,23 @@ void UpdateOverlayed(not_null<QWidget*> widget);
 void ShowOverAll(not_null<QWidget*> widget, bool canFocus = true);
 void BringToBack(not_null<QWidget*> widget);
 void IgnoreAllActivation(not_null<QWidget*> widget);
+void ClearTransientParent(not_null<QWidget*> widget);
+
+[[nodiscard]] std::optional<bool> IsOverlapped(
+    not_null<QWidget*> widget,
+    const QRect &rect);
 
 [[nodiscard]] constexpr bool UseMainQueueGeneric();
 void DrainMainQueue(); // Needed only if UseMainQueueGeneric() is false.
+
+[[nodiscard]] bool WindowExtentsSupported();
+bool SetWindowExtents(QWindow *window, const QMargins &extents);
+bool UnsetWindowExtents(QWindow *window);
+bool ShowWindowMenu(QWindow *window);
+
+[[nodiscard]] TitleControls::Layout TitleControlsLayout();
+[[nodiscard]] rpl::producer<> TitleControlsLayoutChanged();
+void NotifyTitleControlsLayoutChanged();
 
 } // namespace Platform
 } // namespace Ui

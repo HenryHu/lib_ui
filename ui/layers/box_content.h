@@ -45,6 +45,7 @@ class BoxContentDelegate {
 public:
 	virtual void setLayerType(bool layerType) = 0;
 	virtual void setStyle(const style::Box &st) = 0;
+	virtual const style::Box &style() = 0;
 	virtual void setTitle(rpl::producer<TextWithEntities> title) = 0;
 	virtual void setAdditionalTitle(rpl::producer<QString> additional) = 0;
 	virtual void setCloseByOutsideClick(bool close) = 0;
@@ -125,6 +126,8 @@ public:
 
 	void scrollToWidget(not_null<QWidget*> widget);
 
+	virtual void showFinished() {
+	}
 	void clearButtons() {
 		getDelegate()->clearButtons();
 	}
@@ -194,7 +197,7 @@ public:
 
 	void scrollByDraggingDelta(int delta);
 
-public slots:
+public Q_SLOTS:
 	void onScrollToY(int top, int bottom = -1);
 
 protected:
@@ -257,7 +260,7 @@ protected:
 	void paintEvent(QPaintEvent *e) override;
 	void keyPressEvent(QKeyEvent *e) override;
 
-private slots:
+private Q_SLOTS:
 	void onScroll();
 	void onInnerResize();
 

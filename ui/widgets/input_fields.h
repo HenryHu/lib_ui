@@ -83,13 +83,13 @@ public:
 		return _oldtext;
 	}
 
-public slots:
+public Q_SLOTS:
 	void onTextChange(const QString &text);
 	void onTextEdited();
 
 	void onTouchTimer();
 
-signals:
+Q_SIGNALS:
 	void changed();
 	void cancelled();
 	void submitted(Qt::KeyboardModifiers);
@@ -189,6 +189,7 @@ public:
 
 	void showError();
 	void showErrorNoFocus();
+	void hideError();
 
 	void setMaxLength(int maxLength);
 	void setMinHeight(int minHeight);
@@ -336,7 +337,7 @@ public:
 
 	~InputField();
 
-private slots:
+private Q_SLOTS:
 	void onTouchTimer();
 
 	void onDocumentContentsChange(int position, int charsRemoved, int charsAdded);
@@ -347,7 +348,7 @@ private slots:
 
 	void onFocusInner();
 
-signals:
+Q_SIGNALS:
 	void changed();
 	void submitted(Qt::KeyboardModifiers);
 	void cancelled();
@@ -557,6 +558,8 @@ public:
 		const QString &val = QString());
 
 	void showError();
+	void showErrorNoFocus();
+	void hideError();
 
 	QRect getTextRect() const;
 
@@ -587,7 +590,7 @@ public:
 		startPlaceholderAnimation();
 	}
 
-public slots:
+public Q_SLOTS:
 	void onTextChange(const QString &text);
 	void onCursorPositionChanged(int oldPosition, int position);
 
@@ -595,7 +598,7 @@ public slots:
 
 	void onTouchTimer();
 
-signals:
+Q_SIGNALS:
 	void changed();
 	void cancelled();
 	void submitted(Qt::KeyboardModifiers);
@@ -695,9 +698,14 @@ public:
 
 };
 
-class PortInput : public MaskedInputField {
+class NumberInput : public MaskedInputField {
 public:
-	PortInput(QWidget *parent, const style::InputField &st, rpl::producer<QString> placeholder, const QString &val);
+	NumberInput(
+		QWidget *parent,
+		const style::InputField &st,
+		rpl::producer<QString> placeholder,
+		const QString &value,
+		int limit);
 
 protected:
 	void correctValue(
@@ -705,6 +713,9 @@ protected:
 		int wasCursor,
 		QString &now,
 		int &nowCursor) override;
+
+private:
+	int _limit = 0;
 
 };
 

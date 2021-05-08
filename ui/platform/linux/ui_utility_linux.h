@@ -6,13 +6,15 @@
 //
 #pragma once
 
+#include "ui/platform/ui_platform_utility.h"
+
 class QPainter;
 class QPaintEvent;
 
 namespace Ui {
 namespace Platform {
 
-inline void StartTranslucentPaint(QPainter &p, gsl::span<const QRect> rects) {
+inline void StartTranslucentPaint(QPainter &p, const QRegion &region) {
 }
 
 inline void InitOnTopPanel(not_null<QWidget*> panel) {

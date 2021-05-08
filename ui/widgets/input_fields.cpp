@@ -1045,7 +1045,7 @@ void FlatInput::paintEvent(QPaintEvent *e) {
 	p.setBrush(anim::brush(_st.bgColor, _st.bgActive, placeholderFocused));
 	{
 		PainterHighQualityEnabler hq(p);
-		p.drawRoundedRect(QRectF(0, 0, width(), height()).marginsRemoved(QMarginsF(_st.borderWidth / 2., _st.borderWidth / 2., _st.borderWidth / 2., _st.borderWidth / 2.)), st::buttonRadius - (_st.borderWidth / 2.), st::buttonRadius - (_st.borderWidth / 2.));
+		p.drawRoundedRect(QRectF(0, 0, width(), height()).marginsRemoved(QMarginsF(_st.borderWidth / 2., _st.borderWidth / 2., _st.borderWidth / 2., _st.borderWidth / 2.)), st::roundRadiusSmall - (_st.borderWidth / 2.), st::roundRadiusSmall - (_st.borderWidth / 2.));
 	}
 
 	if (!_st.icon.empty()) {
@@ -1081,7 +1081,7 @@ void FlatInput::focusInEvent(QFocusEvent *e) {
 		update();
 	}
 	QLineEdit::focusInEvent(e);
-	emit focused();
+	focused();
 }
 
 void FlatInput::focusOutEvent(QFocusEvent *e) {
@@ -1095,7 +1095,7 @@ void FlatInput::focusOutEvent(QFocusEvent *e) {
 		update();
 	}
 	QLineEdit::focusOutEvent(e);
-	emit blurred();
+	blurred();
 }
 
 void FlatInput::resizeEvent(QResizeEvent *e) {
@@ -1183,13 +1183,13 @@ void FlatInput::keyPressEvent(QKeyEvent *e) {
 	if (wasText == newText) { // call correct manually
 		correctValue(wasText, newText);
 		_oldtext = newText;
-		if (wasText != _oldtext) emit changed();
+		if (wasText != _oldtext) changed();
 		updatePlaceholder();
 	}
 	if (e->key() == Qt::Key_Escape) {
-		emit cancelled();
+		cancelled();
 	} else if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
-		emit submitted(e->modifiers());
+		submitted(e->modifiers());
 #ifdef Q_OS_MAC
 	} else if (e->key() == Qt::Key_E && e->modifiers().testFlag(Qt::ControlModifier)) {
 		auto selected = selectedText();
@@ -1205,7 +1205,7 @@ void FlatInput::onTextEdited() {
 
 	correctValue(wasText, newText);
 	_oldtext = newText;
-	if (wasText != _oldtext) emit changed();
+	if (wasText != _oldtext) changed();
 	updatePlaceholder();
 
 	Integration::Instance().textActionsUpdated();
@@ -1585,7 +1585,7 @@ bool InputField::heightAutoupdated() {
 
 void InputField::checkContentHeight() {
 	if (heightAutoupdated()) {
-		emit resized();
+		resized();
 	}
 }
 
@@ -1771,13 +1771,13 @@ void InputField::focusInEventInner(QFocusEvent *e) {
 		: (width() / 2);
 	setFocused(true);
 	_inner->QTextEdit::focusInEvent(e);
-	emit focused();
+	focused();
 }
 
 void InputField::focusOutEventInner(QFocusEvent *e) {
 	setFocused(false);
 	_inner->QTextEdit::focusOutEvent(e);
-	emit blurred();
+	blurred();
 }
 
 void InputField::setFocused(bool focused) {
@@ -2306,7 +2306,7 @@ void InputField::handleContentsChanged() {
 	if (tagsChanged || (_lastTextWithTags.text != currentText)) {
 		_lastTextWithTags.text = currentText;
 		const auto weak = MakeWeak(this);
-		emit changed();
+		changed();
 		if (!weak) {
 			return;
 		}
@@ -2630,12 +2630,18 @@ bool InputField::ShouldSubmit(
 }
 
 void InputField::keyPressEventInner(QKeyEvent *e) {
-	bool shift = e->modifiers().testFlag(Qt::ShiftModifier), alt = e->modifiers().testFlag(Qt::AltModifier);
-	bool macmeta = Platform::IsMac() && e->modifiers().testFlag(Qt::ControlModifier) && !e->modifiers().testFlag(Qt::MetaModifier) && !e->modifiers().testFlag(Qt::AltModifier);
-	bool ctrl = e->modifiers().testFlag(Qt::ControlModifier) || e->modifiers().testFlag(Qt::MetaModifier);
-	bool enterSubmit = (_mode != Mode::MultiLine)
+	const auto shift = e->modifiers().testFlag(Qt::ShiftModifier);
+	const auto alt = e->modifiers().testFlag(Qt::AltModifier);
+	const auto macmeta = Platform::IsMac()
+		&& e->modifiers().testFlag(Qt::ControlModifier)
+		&& !e->modifiers().testFlag(Qt::MetaModifier)
+		&& !e->modifiers().testFlag(Qt::AltModifier);
+	const auto ctrl = e->modifiers().testFlag(Qt::ControlModifier)
+		|| e->modifiers().testFlag(Qt::MetaModifier);
+	const auto enterSubmit = (_mode != Mode::MultiLine)
 		|| ShouldSubmit(_submitSettings, e->modifiers());
-	bool enter = (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return);
+	const auto enter = (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return);
+	const auto backspace = (e->key() == Qt::Key_Backspace);
 	if (e->key() == Qt::Key_Left
 		|| e->key() == Qt::Key_Right
 		|| e->key() == Qt::Key_Up
@@ -2645,25 +2651,25 @@ void InputField::keyPressEventInner(QKeyEvent *e) {
 		_reverseMarkdownReplacement = false;
 	}
 
-	if (macmeta && e->key() == Qt::Key_Backspace) {
+	if (macmeta && backspace) {
 		QTextCursor tc(textCursor()), start(tc);
 		start.movePosition(QTextCursor::StartOfLine);
 		tc.setPosition(start.position(), QTextCursor::KeepAnchor);
 		tc.removeSelectedText();
-	} else if (e->key() == Qt::Key_Backspace
+	} else if (backspace
 		&& e->modifiers() == 0
 		&& revertFormatReplace()) {
 		e->accept();
 	} else if (enter && enterSubmit) {
-		emit submitted(e->modifiers());
+		submitted(e->modifiers());
 	} else if (e->key() == Qt::Key_Escape) {
 		e->ignore();
-		emit cancelled();
+		cancelled();
 	} else if (e->key() == Qt::Key_Tab || e->key() == Qt::Key_Backtab) {
 		if (alt || ctrl) {
 			e->ignore();
 		} else if (_customTab) {
-			emit tabbed();
+			tabbed();
 		} else if (!focusNextPrevChild(e->key() == Qt::Key_Tab && !shift)) {
 			e->ignore();
 		}
@@ -2687,12 +2693,22 @@ void InputField::keyPressEventInner(QKeyEvent *e) {
 	} else {
 		const auto text = e->text();
 		const auto oldPosition = textCursor().position();
-		if (enter && ctrl) {
-			e->setModifiers(e->modifiers() & ~Qt::ControlModifier);
-		} else if (enter && shift) {
-			e->setModifiers(e->modifiers() & ~Qt::ShiftModifier);
+		const auto oldModifiers = e->modifiers();
+		const auto allowedModifiers = (enter && ctrl)
+			? (~Qt::ControlModifier)
+			: (enter && shift)
+			? (~Qt::ShiftModifier)
+			: (backspace && Platform::IsLinux())
+			? (Qt::ControlModifier)
+			: oldModifiers;
+		const auto changeModifiers = (oldModifiers & ~allowedModifiers) != 0;
+		if (changeModifiers) {
+			e->setModifiers(oldModifiers & allowedModifiers);
 		}
 		_inner->QTextEdit::keyPressEvent(e);
+		if (changeModifiers) {
+			e->setModifiers(oldModifiers);
+		}
 		auto cursor = textCursor();
 		if (cursor.position() == oldPosition) {
 			bool check = false;
@@ -3341,7 +3357,7 @@ bool InputField::revertFormatReplace() {
 void InputField::contextMenuEventInner(QContextMenuEvent *e, QMenu *m) {
 	if (const auto menu = m ? m : _inner->createStandardContextMenu()) {
 		addMarkdownActions(menu, e);
-		_contextMenu = base::make_unique_q<PopupMenu>(this, menu);
+		_contextMenu = base::make_unique_q<PopupMenu>(this, menu, _st.menu);
 		_contextMenu->popup(e->globalPos());
 	}
 }
@@ -3551,6 +3567,10 @@ void InputField::showError() {
 
 void InputField::showErrorNoFocus() {
 	setErrorShown(true);
+}
+
+void InputField::hideError() {
+	setErrorShown(false);
 }
 
 void InputField::setErrorShown(bool error) {
@@ -3812,13 +3832,13 @@ void MaskedInputField::focusInEvent(QFocusEvent *e) {
 	_borderAnimationStart = (e->reason() == Qt::MouseFocusReason) ? mapFromGlobal(QCursor::pos()).x() : (width() / 2);
 	setFocused(true);
 	QLineEdit::focusInEvent(e);
-	emit focused();
+	focused();
 }
 
 void MaskedInputField::focusOutEvent(QFocusEvent *e) {
 	setFocused(false);
 	QLineEdit::focusOutEvent(e);
-	emit blurred();
+	blurred();
 }
 
 void MaskedInputField::setFocused(bool focused) {
@@ -3870,10 +3890,18 @@ void MaskedInputField::inputMethodEvent(QInputMethodEvent *e) {
 }
 
 void MaskedInputField::showError() {
-	setErrorShown(true);
+	showErrorNoFocus();
 	if (!hasFocus()) {
 		setFocus();
 	}
+}
+
+void MaskedInputField::showErrorNoFocus() {
+	setErrorShown(true);
+}
+
+void MaskedInputField::hideError() {
+	setErrorShown(false);
 }
 
 void MaskedInputField::setErrorShown(bool error) {
@@ -3944,14 +3972,14 @@ void MaskedInputField::keyPressEvent(QKeyEvent *e) {
 		correctValue(wasText, wasCursor, newText, newCursor);
 		_oldtext = newText;
 		_oldcursor = newCursor;
-		if (wasText != _oldtext) emit changed();
+		if (wasText != _oldtext) changed();
 		startPlaceholderAnimation();
 	}
 	if (e->key() == Qt::Key_Escape) {
 		e->ignore();
-		emit cancelled();
+		cancelled();
 	} else if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
-		emit submitted(e->modifiers());
+		submitted(e->modifiers());
 #ifdef Q_OS_MAC
 	} else if (e->key() == Qt::Key_E && e->modifiers().testFlag(Qt::ControlModifier)) {
 		auto selected = selectedText();
@@ -3969,7 +3997,7 @@ void MaskedInputField::onTextEdited() {
 	correctValue(wasText, wasCursor, newText, newCursor);
 	_oldtext = newText;
 	_oldcursor = newCursor;
-	if (wasText != _oldtext) emit changed();
+	if (wasText != _oldtext) changed();
 	startPlaceholderAnimation();
 
 	Integration::Instance().textActionsUpdated();
@@ -3994,18 +4022,20 @@ PasswordInput::PasswordInput(
 	setEchoMode(QLineEdit::Password);
 }
 
-PortInput::PortInput(
+NumberInput::NumberInput(
 	QWidget *parent,
 	const style::InputField &st,
 	rpl::producer<QString> placeholder,
-	const QString &val)
-: MaskedInputField(parent, st, std::move(placeholder), val) {
-	if (!val.toInt() || val.toInt() > 65535) {
+	const QString &value,
+	int limit)
+: MaskedInputField(parent, st, std::move(placeholder), value)
+, _limit(limit) {
+	if (!value.toInt() || (limit > 0 && value.toInt() > limit)) {
 		setText(QString());
 	}
 }
 
-void PortInput::correctValue(
+void NumberInput::correctValue(
 		const QString &was,
 		int wasCursor,
 		QString &now,
@@ -4023,7 +4053,7 @@ void PortInput::correctValue(
 	if (!newText.toInt()) {
 		newText = QString();
 		newPos = 0;
-	} else if (newText.toInt() > 65535) {
+	} else if (_limit > 0 && newText.toInt() > _limit) {
 		newText = was;
 		newPos = wasCursor;
 	}

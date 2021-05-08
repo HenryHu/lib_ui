@@ -79,6 +79,10 @@ RippleButton::RippleButton(QWidget *parent, const style::RippleAnimation &st)
 
 void RippleButton::clearState() {
 	AbstractButton::clearState();
+	finishAnimating();
+}
+
+void RippleButton::finishAnimating() {
 	if (_ripple) {
 		_ripple.reset();
 		update();
@@ -114,6 +118,13 @@ void RippleButton::setForceRippled(
 		_ripple->lastFinish();
 	}
 	update();
+}
+
+void RippleButton::paintRipple(
+		QPainter &p,
+		const QPoint &point,
+		const QColor *colorOverride) {
+	paintRipple(p, point.x(), point.y(), colorOverride);
 }
 
 void RippleButton::paintRipple(QPainter &p, int x, int y, const QColor *colorOverride) {
@@ -195,6 +206,11 @@ void FlatButton::setWidth(int w) {
 	resize(_width, height());
 }
 
+void FlatButton::setColorOverride(std::optional<QColor> color) {
+	_colorOverride = color;
+	update();
+}
+
 int32 FlatButton::textWidth() const {
 	return _st.font->width(_text);
 }
@@ -214,7 +230,11 @@ void FlatButton::paintEvent(QPaintEvent *e) {
 
 	p.setFont(isOver() ? _st.overFont : _st.font);
 	p.setRenderHint(QPainter::TextAntialiasing);
-	p.setPen(isOver() ? _st.overColor : _st.color);
+	if (_colorOverride) {
+		p.setPen(*_colorOverride);
+	} else {
+		p.setPen(isOver() ? _st.overColor : _st.color);
+	}
 
 	const auto textRect = inner.marginsRemoved(
 		_textMargins
@@ -236,8 +256,8 @@ RoundButton::RoundButton(
 : RippleButton(parent, st.ripple)
 , _textFull(std::move(text))
 , _st(st)
-, _roundRect(ImageRoundRadius::Small, _st.textBg)
-, _roundRectOver(ImageRoundRadius::Small, _st.textBgOver) {
+, _roundRect(st.radius ? st.radius : st::buttonRadius, _st.textBg)
+, _roundRectOver(st.radius ? st.radius : st::buttonRadius, _st.textBgOver) {
 	_textFull.value(
 	) | rpl::start_with_next([=](const QString &text) {
 		resizeToText(text);
@@ -274,6 +294,11 @@ void RoundButton::setWidthChangedCallback(Fn<void()> callback) {
 		});
 	}
 	_numbers->setWidthChangedCallback(std::move(callback));
+}
+
+void RoundButton::setBrushOverride(std::optional<QBrush> brush) {
+	_brushOverride = std::move(brush);
+	update();
 }
 
 void RoundButton::finishNumbersAnimation() {
@@ -347,7 +372,12 @@ void RoundButton::paintEvent(QPaintEvent *e) {
 			const auto radius = rounded.height() / 2;
 			PainterHighQualityEnabler hq(p);
 			p.setPen(Qt::NoPen);
-			p.setBrush(rect.color());
+			p.setBrush(_brushOverride ? *_brushOverride : rect.color()->b);
+			p.drawRoundedRect(fill, radius, radius);
+		} else if (_brushOverride) {
+			p.setPen(Qt::NoPen);
+			p.setBrush(*_brushOverride);
+			const auto radius = _st.radius ? _st.radius : st::buttonRadius;
 			p.drawRoundedRect(fill, radius, radius);
 		} else {
 			rect.paint(p, fill);
@@ -357,11 +387,11 @@ void RoundButton::paintEvent(QPaintEvent *e) {
 
 	auto over = isOver();
 	auto down = isDown();
-	if (over || down) {
+	if (!_brushOverride && (over || down)) {
 		drawRect(_roundRectOver);
 	}
 
-	paintRipple(p, rounded.x(), rounded.y());
+	paintRipple(p, rounded.topLeft());
 
 	p.setFont(_st.font);
 	const auto textTop = _st.padding.top() + _st.textTop;
@@ -392,7 +422,10 @@ void RoundButton::paintEvent(QPaintEvent *e) {
 		_numbers->paint(p, textLeft, textTop, width());
 	}
 	if (!_st.icon.empty()) {
-		_st.icon.paint(p, QPoint(iconLeft, iconTop), width());
+		const auto &current = ((over || down) && !_st.iconOver.empty())
+			? _st.iconOver
+			: _st.icon;
+		current.paint(p, QPoint(iconLeft, iconTop), width());
 	}
 }
 
@@ -404,7 +437,11 @@ QImage RoundButton::prepareRippleMask() const {
 	}
 	return RippleAnimation::roundRectMask(
 		rounded.size(),
-		_fullRadius ? (rounded.height() / 2) : st::buttonRadius);
+		(_fullRadius
+			? (rounded.height() / 2)
+			: _st.radius
+			? _st.radius
+			: st::buttonRadius));
 }
 
 QPoint RoundButton::prepareRippleStartPosition() const {
@@ -431,7 +468,7 @@ void IconButton::setRippleColorOverride(const style::color *colorOverride) {
 void IconButton::paintEvent(QPaintEvent *e) {
 	Painter p(this);
 
-	paintRipple(p, _st.rippleAreaPosition.x(), _st.rippleAreaPosition.y(), _rippleColorOverride ? &(*_rippleColorOverride)->c : nullptr);
+	paintRipple(p, _st.rippleAreaPosition, _rippleColorOverride ? &(*_rippleColorOverride)->c : nullptr);
 
 	auto down = isDown();
 	auto overIconOpacity = (down || forceRippled()) ? 1. : _a_over.value(isOver() ? 1. : 0.);
@@ -547,7 +584,7 @@ void CrossButton::paintEvent(QPaintEvent *e) {
 	auto shown = _showAnimation.value(_shown ? 1. : 0.);
 	p.setOpacity(shown);
 
-	paintRipple(p, _st.crossPosition.x(), _st.crossPosition.y());
+	paintRipple(p, _st.crossPosition);
 
 	auto loading = 0.;
 	if (_loadingAnimation.animating()) {
@@ -649,6 +686,8 @@ SettingsButton::SettingsButton(
 		setText(std::move(value));
 	}, lifetime());
 }
+
+SettingsButton::~SettingsButton() = default;
 
 SettingsButton *SettingsButton::toggleOn(rpl::producer<bool> &&toggled) {
 	Expects(_toggle == nullptr);

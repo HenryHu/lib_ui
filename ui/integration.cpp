@@ -36,10 +36,12 @@ void Integration::textActionsUpdated() {
 void Integration::activationFromTopPanel() {
 }
 
-void Integration::startFontsBegin() {
+bool Integration::screenIsLocked() {
+	return false;
 }
 
-void Integration::startFontsEnd() {
+QString Integration::timeFormat() {
+	return u"hh:mm"_q;
 }
 
 std::shared_ptr<ClickHandler> Integration::createLinkHandler(

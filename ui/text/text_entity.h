@@ -7,6 +7,7 @@
 #pragma once
 
 #include "base/basic_types.h"
+#include "base/algorithm.h"
 
 #include <QtCore/QList>
 #include <QtCore/QVector>
@@ -300,17 +301,22 @@ QStringList PrepareSearchWords(const QString &query, const QRegularExpression *S
 bool CutPart(TextWithEntities &sending, TextWithEntities &left, int limit);
 
 struct MentionNameFields {
-	MentionNameFields(int32 userId = 0, uint64 accessHash = 0) : userId(userId), accessHash(accessHash) {
+	MentionNameFields(uint64 userId = 0, uint64 accessHash = 0)
+	: userId(userId), accessHash(accessHash) {
 	}
-	int32 userId = 0;
+	uint64 userId = 0;
 	uint64 accessHash = 0;
 };
+
 inline MentionNameFields MentionNameDataToFields(const QString &data) {
 	auto components = data.split('.');
 	if (!components.isEmpty()) {
-		return { components.at(0).toInt(), (components.size() > 1) ? components.at(1).toULongLong() : 0 };
+		return {
+			components.at(0).toULongLong(),
+			(components.size() > 1) ? components.at(1).toULongLong() : 0
+		};
 	}
-	return MentionNameFields {};
+	return MentionNameFields{};
 }
 
 inline QString MentionNameDataFromFields(const MentionNameFields &fields) {
@@ -343,10 +349,13 @@ inline QString PrepareForSending(const QString &text, PrepareTextOption option =
 // Replace bad symbols with space and remove '\r'.
 void ApplyServerCleaning(TextWithEntities &result);
 
-QByteArray SerializeTags(const TextWithTags::Tags &tags);
-TextWithTags::Tags DeserializeTags(QByteArray data, int textLength);
-QString TagsMimeType();
-QString TagsTextMimeType();
+[[nodiscard]] int SerializeTagsSize(const TextWithTags::Tags &tags);
+[[nodiscard]] QByteArray SerializeTags(const TextWithTags::Tags &tags);
+[[nodiscard]] TextWithTags::Tags DeserializeTags(
+	QByteArray data,
+	int textLength);
+[[nodiscard]] QString TagsMimeType();
+[[nodiscard]] QString TagsTextMimeType();
 
 inline const auto kMentionTagStart = qstr("mention://user.");
 

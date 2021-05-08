@@ -97,6 +97,20 @@ std::array<QImage, 4> PrepareCorners(
 	return result;
 }
 
+std::array<QImage, 4> CornersMask(int radius) {
+	return PrepareCornersMask(radius);
+}
+
+std::array<QImage, 4> PrepareCorners(
+		int radius,
+		const style::color &color) {
+	auto result = CornersMask(radius);
+	for (auto &image : result) {
+		style::colorizeImage(image, color->c, &image);
+	}
+	return result;
+}
+
 QImage prepareBlur(QImage img) {
 	if (img.isNull()) {
 		return img;
@@ -260,8 +274,8 @@ QImage BlurLargeImage(QImage image, int radius) {
 	const auto rgb = take(widthxheight * 3).data();
 	const auto dvs = take(dvcount);
 
-	auto &&ints = ranges::view::ints;
-	for (auto &&[value, index] : ranges::view::zip(dvs, ints(0, ranges::unreachable))) {
+	auto &&ints = ranges::views::ints;
+	for (auto &&[value, index] : ranges::views::zip(dvs, ints(0, ranges::unreachable))) {
 		value = (index / divsum);
 	}
 	const auto dv = dvs.data();

@@ -58,7 +58,17 @@ public:
 
 	void clearState() override;
 
-	void paintRipple(QPainter &p, int x, int y, const QColor *colorOverride = nullptr);
+	void paintRipple(
+		QPainter &p,
+		const QPoint &point,
+		const QColor *colorOverride = nullptr);
+	void paintRipple(
+		QPainter &p,
+		int x,
+		int y,
+		const QColor *colorOverride = nullptr);
+
+	void finishAnimating();
 
 	~RippleButton();
 
@@ -84,6 +94,7 @@ public:
 
 	void setText(const QString &text);
 	void setWidth(int w);
+	void setColorOverride(std::optional<QColor> color);
 	void setTextMargins(QMargins margins);
 
 	int32 textWidth() const;
@@ -97,6 +108,7 @@ private:
 	QString _text;
 	QMargins _textMargins;
 	int _width = 0;
+	std::optional<QColor> _colorOverride;
 
 	const style::FlatButton &_st;
 
@@ -118,6 +130,7 @@ public:
 		setNumbersText(QString::number(numbers), numbers);
 	}
 	void setWidthChangedCallback(Fn<void()> callback);
+	void setBrushOverride(std::optional<QBrush> brush);
 	void finishNumbersAnimation();
 
 	int contentWidth() const;
@@ -153,6 +166,7 @@ private:
 	int _fullWidthOverride = 0;
 
 	const style::RoundButton &_st;
+	std::optional<QBrush> _brushOverride;
 	RoundRect _roundRect;
 	RoundRect _roundRectOver;
 
@@ -240,6 +254,7 @@ public:
 		QWidget *parent,
 		rpl::producer<QString> &&text,
 		const style::SettingsButton &st);
+	~SettingsButton();
 
 	SettingsButton *toggleOn(rpl::producer<bool> &&toggled);
 	bool toggled() const;
